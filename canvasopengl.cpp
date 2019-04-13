@@ -45,30 +45,106 @@ void CanvasOpenGL::paintGL() {
 //void CanvasOpenGL::resizeGL(int w, int h) {}
 
 void CanvasOpenGL::polygonFill() {
+    // A indexação do vetor ET é dada pelo Ymin. A indexação do map é o X e seu conteúdo o Ymax e o 1/m
     map<int, pair<int, float>> ET[WINDOW_HEIGHT];
-    priority_queue<tuple<int, float, float> > AET;
-    priority_queue<tuple<int, float, float> > nextET;
+    // A tupla representa os seguintes elementos: X atual, Y max, variação (1/m)
+    priority_queue<tuple<float, int, float> > AET;
+    priority_queue<tuple<float, int, float> > nextET;
 
-    for (vector<QPoint>::iterator i = this->vertices.begin(), next_point; i != this->vertices.end(); i++) {
-        next_point = next(i, 1);
-        QPoint ymin;// = min(i->y(), next_point->y());
-        QPoint ymax;// = max(i->y(), next_point->y());
+    for (unsigned long long i = 0; i < vertices.size(); ++i)
+        printf("(%d, %d)\n", vertices[i].x(), vertices[i].y());
 
-        if (ymin != ymax) {
+    // Cria Edge Table
+    for (unsigned long long i = 0, next_point = 0; i < this->vertices.size(); i++) {
+        next_point = i + 1; // Pega o próximo ponto do vetor de vértices
+        if (next_point == this->vertices.size()) // Caso o próximo ponto seja o último
+            next_point = 0;    // O próximo é o primeiro
 
+        printf("Ponto i = (%d, %d), ", vertices[i].x(), vertices[i].y());
+        printf("next_point = (%d, %d)\n", vertices[next_point].x(), vertices[next_point].y());
+
+        QPoint pointMin, pointMax;
+        if (vertices[i].y() > vertices[next_point].y()){
+            pointMin = vertices[next_point];
+            pointMax = vertices[i];
+        } else {
+            pointMin = vertices[i];
+            pointMax = vertices[next_point];
+        }
+
+        if (pointMin.y() != pointMax.y()) { // Caso os dois pontos possuam o mesmo Y, não precisa incluir na ET
+            int dx = pointMax.x() - pointMin.x();
+            int dy = pointMax.y() - pointMin.y();
+            ET[pointMin.y()][pointMin.x()] = make_pair(pointMax.y(), float (dx / float (dy)));
+        } else {
+            printf("PONTOS Y IGUAIS!\n");
         }
     }
+    printf("tamanho do vetor de pontos: %d\n", this->vertices.size());
+    int t = 0;
+    for (int i = 0; i < WINDOW_HEIGHT; ++i)
+        t += ET[i].size();
+
+    printf("Tamanho do ET: %d\n", t);
+
+    //MakeAET(0, ET, AET, nextET);   // Percorre o algorítmo da tabela de vértices ativo
 }
 
-//void vaiPreenchendo(priority_queue<tuple<int, float, float> > &AET, priority_queue<tuple<int, float, float> > &AETaux) {
+void CanvasOpenGL::MakeAET(int currentY,
+             map<int, pair<int, float> > ET[WINDOW_HEIGHT],
+             priority_queue<tuple<float, int, float> > &AET,
+             priority_queue<tuple<float, int, float> > &AETaux) {
 
+    if (currentY == WINDOW_HEIGHT)
+        return;
 
-//    vaiPreenchendo(AETaux, AET);
-//}
+    // Coloca os elementos da ET na AET
+    for (map<int, pair<int, float>>::iterator i = ET[currentY].begin(); i != ET[currentY].end(); i++) {
+        int x = i->first;
+        int yMax = i->second.first;
+        float m = i->second.second;
+        AET.push(make_tuple(x, yMax, m));
+    }
+
+    QPainter painter(this);
+    QPen myPen(1); // 1 px
+    QColor color(R, G, B);
+    myPen.setColor(color);
+
+    painter.setPen(myPen);
+
+    // Percorre a AET pintando o interior do polígono
+    while (AET.size() > 0) {
+        tuple<float, int, float> initial = AET.top();
+        AET.pop();
+        tuple<float, int, float> final = AET.top();
+        AET.pop();
+
+        int initialY, finalY;
+        float initialX, initialM, finalX, finalM;
+        tie(initialX, initialY, initialM) = initial;
+        tie(finalX, finalY, finalM) = final;
+
+        // Pinta na tela a linha entre os dois pontos das retas
+        painter.drawLine(int(ceil(initialX)), currentY, int(floor(finalX)), currentY);
+
+        initialX += initialM;
+        finalX += finalM;
+
+        if (currentY-1 < initialY)
+            AETaux.push(make_tuple(initialX, initialY, initialM));
+        if (currentY-1 < finalY)
+            AETaux.push(make_tuple(finalX, finalY, finalM));
+    }
+
+    MakeAET(currentY+1, ET, AETaux, AET);
+}
 
 void CanvasOpenGL::closePolygon() {
-    if (this->vertices.size() >= 3)
+    if (this->vertices.size() >= 3) {
         isPolygonClosed = true;
+        polygonFill();
+    }
 }
 
 void CanvasOpenGL::mousePressEvent(QMouseEvent *event) {

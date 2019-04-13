@@ -84,6 +84,9 @@
      <property name="singleStep">
       <double>1.000000000000000</double>
      </property>
+     <property name="value">
+      <double>255.000000000000000</double>
+     </property>
     </widget>
     <widget class="QDoubleSpinBox" name="ColorR">
      <property name="geometry">
@@ -103,6 +106,9 @@
      <property name="singleStep">
       <double>1.000000000000000</double>
      </property>
+     <property name="value">
+      <double>255.000000000000000</double>
+     </property>
     </widget>
     <widget class="QDoubleSpinBox" name="ColorG">
      <property name="geometry">
@@ -121,6 +127,9 @@
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>255.000000000000000</double>
      </property>
     </widget>
     <widget class="QLabel" name="label">

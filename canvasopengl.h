@@ -21,6 +21,11 @@ public:
     void clearScreen();
     void closePolygon();
     void polygonFill();
+    void MakeAET(int currentY,
+                 map<int, pair<int, float> > ET[],
+                 priority_queue<tuple<float, int, float> > &AET,
+                 priority_queue<tuple<float, int, float> > &AETaux);
+
 
 private:
     vector<QPoint> vertices;
