@@ -21,10 +21,10 @@ public:
     void clearScreen();
     void closePolygon();
     void polygonFill();
-    void MakeAET(int currentY,
-                 map<int, pair<int, float> > ET[],
-                 priority_queue<tuple<float, int, float> > &AET,
-                 priority_queue<tuple<float, int, float> > &AETaux);
+    void MakeAET(int currentY, int count,
+                 priority_queue<tuple<float, int, float>, vector<tuple<float, int, float> >, std::greater<tuple<float, int, float> > > ET[],
+                 priority_queue<tuple<float, int, float>, vector<tuple<float, int, float> >, std::greater<tuple<float, int, float> > > &AET,
+                 priority_queue<tuple<float, int, float>, vector<tuple<float, int, float> >, std::greater<tuple<float, int, float> > > &AETaux);
 
 
 private:
